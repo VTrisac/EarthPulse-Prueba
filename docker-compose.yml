@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # MongoDB for metadata storage
+  mongo:
+    image: mongo:6
+    container_name: drive-clone-mongo
+    restart: unless-stopped
+    volumes:
+      - ./data/mongo:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - drive-network
+
+  # MinIO for object storage
+  minio:
+    image: minio/minio:latest
+    container_name: drive-clone-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./data/minio:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - drive-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: drive-clone-minio-init
+    depends_on:
+      - minio
+    networks:
+      - drive-network
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/files --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/files;
+      exit 0;
+      "
+
+  # FastAPI backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: drive-clone-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/filesdb
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=files
+      - MINIO_SECURE=false
+    depends_on:
+      - mongo
+      - minio
+      - minio-init
+    networks:
+      - drive-network
+    volumes:
+      - ./backend:/app
+
+  # SvelteKit frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: drive-clone-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - drive-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+networks:
+  drive-network:
+    driver: bridge

@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom styles */
+.btn {
+  @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white hover:shadow-2xl;
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.btn-danger {
+  @apply bg-gradient-to-r from-red-500 to-pink-600 text-white hover:shadow-2xl;
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.btn-secondary {
+  @apply bg-white/20 backdrop-blur-lg text-gray-800 hover:bg-white/30 border border-white/30;
+}
+
+.input {
+  @apply border-2 border-purple-200 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-300;
+}
+
+.card {
+  @apply bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20 hover:shadow-2xl transition-all duration-300;
+  animation: slide-up 0.5s ease-out;
+}
+
+.card-hover {
+  @apply hover:transform hover:-translate-y-2 transition-all duration-300;
+}
+
+.glass-effect {
+  @apply bg-white/30 backdrop-blur-xl border border-white/40 shadow-xl;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent;
+}
